@@ -6,6 +6,8 @@ Fetches the [NYTimes Crossword](https://www.nytimes.com/crosswords) with the opt
 
 You'll need to save your nytimes.com cookies to cookie.txt. I find it easiest to do this by opening a URL like https://www.nytimes.com/svc/crosswords/v2/puzzle/print/Jun1123.pdf in your browser with Chrome DevTools open, then navigating to the request -> Header -> Cookie
 
+<img src="https://github.com/jdan/getxword/assets/287268/d89190cf-034d-44f4-9f12-bcd1d9afdf5c" width="500" alt="Chrome Devtools showing the request">
+
 ### usage
 
 Fetch the crossword
