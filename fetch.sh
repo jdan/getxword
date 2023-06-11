@@ -2,7 +2,14 @@
 
 # current date i.e. Jun1123
 # include the last 2 digits of the year
-DATE=$(date +"%b%d%y")
+
+# if available use the argument as the date
+if [ -z "$1" ]
+then
+  DATE=$(date +"%b%d%y")
+else
+  DATE=$1
+fi
 
 # read cookie from cookie.txt
 COOKIE=$(cat cookie.txt)
@@ -27,3 +34,9 @@ curl "https://www.nytimes.com/svc/crosswords/v2/puzzle/print/$DATE.pdf" \
   -H 'upgrade-insecure-requests: 1' \
   -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' \
   --compressed
+
+# if --open, open the pdf
+if [ "$2" = "--open" ]
+then
+  open $DATE.pdf
+fi
