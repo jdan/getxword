@@ -1,18 +1,50 @@
 #!/bin/bash
 
-# current date i.e. Jun1123
-# include the last 2 digits of the year
+# -d Jun1123, date
+# -o, open
+# -u, upload
 
-# if available use the argument as the date
-if [ -z "$1" ]
+usage() {
+  echo "Usage: $0 [-d DATE] [-o] [-u]" 1>&2
+  exit 1
+}
+
+while getopts "d:ouh" OPTION; do
+  case "${OPTION}" in
+    d)
+      DATE=$OPTARG
+      ;;
+    o)
+      OPEN=true
+      ;;
+    u)
+      UPLOAD=true
+      ;;
+    h)
+      usage
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+  esac
+done
+
+# if no date, use today
+if [ -z "$DATE" ]
 then
   DATE=$(date +"%b%d%y")
-else
-  DATE=$1
 fi
 
 # read cookie from cookie.txt
 COOKIE=$(cat cookie.txt)
+
+# if no cookie, print error
+if [ -z "$COOKIE" ]
+then
+  echo "Error: cookie.txt is empty"
+  exit 1
+fi
 
 curl "https://www.nytimes.com/svc/crosswords/v2/puzzle/print/$DATE.pdf" \
   --silent \
@@ -35,8 +67,16 @@ curl "https://www.nytimes.com/svc/crosswords/v2/puzzle/print/$DATE.pdf" \
   -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' \
   --compressed
 
-# if --open, open the pdf
-if [ "$2" = "--open" ]
+if [ "$OPEN" == true ]
 then
   open $DATE.pdf
+fi
+
+if [ "$UPLOAD" == true ]
+then
+  # convert %b%d%y to Saturday, June 11, 2023
+  FULLDATE=$(date -j -f "%b%d%y" $DATE +"%A, %B %d, %Y")
+
+  rmapi put $DATE.pdf
+  rmapi mv $DATE "$FULLDATE"
 fi
