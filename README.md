@@ -12,25 +12,25 @@ You'll need to save your nytimes.com cookies to cookie.txt. I find it easiest to
 
 Fetch the crossword
 
-```
+```sh
 getxword  # Outputs to a file like Jun1123.pdf
 ```
 
 Fetch the crossword for a particular date (i.e. July 20, 2022)
 
-```
+```sh
 getxword -d Jul2022  # Outputs to Jul2022.pdf
 ```
 
 Open the crossword
 
-```
+```sh
 getxword -o   # Downloads the crossword and opens it in your browser
 ```
 
 Upload the crossword
 
-```
+```sh
 getxword -d Jul2022 -u   # Uploads the PDF to your remarkable
                          # renames to 'Wednesday, July 20, 2022' on device
 ```
