@@ -5,15 +5,12 @@
 # -u, upload
 
 usage() {
-  echo "Usage: $0 [-d DATE] [-o] [-u]" 1>&2
+  echo "Usage: $0 [-o] [-u]" 1>&2
   exit 1
 }
 
-while getopts "d:ouh" OPTION; do
+while getopts "ouh" OPTION; do
   case "${OPTION}" in
-    d)
-      DATE=$OPTARG
-      ;;
     o)
       OPEN=true
       ;;
@@ -30,11 +27,7 @@ while getopts "d:ouh" OPTION; do
   esac
 done
 
-# if no date, use today
-if [ -z "$DATE" ]
-then
-  DATE=$(date +"%b%d%y")
-fi
+DATE=$(date +"%b%d%y")
 
 # read cookie from cookie.txt, where this file is located
 DIR=$(dirname $0)
@@ -47,7 +40,37 @@ then
   exit 1
 fi
 
-curl "https://www.nytimes.com/svc/crosswords/v2/puzzle/print/$DATE.pdf" \
+# Grab today's crossword ID from the hub's html (data-track-hub-context on action-play)
+# <div class="featured button action-play primary puzzleInfo js-hub-tracker" role="button" tabindex="0" data-track-hub="The Crossword" data-track-hub-context="21611">
+PUZZLE_ID=$(curl 'https://www.nytimes.com/crosswords' \
+  --silent \
+  -H 'authority: www.nytimes.com' \
+  -H 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' \
+  -H 'accept-language: en-US,en;q=0.9' \
+  -H 'cache-control: max-age=0' \
+  -H "cookie: ${COOKIE}" \
+  -H 'dnt: 1' \
+  -H 'sec-ch-ua: "Not_A Brand";v="8", "Chromium";v="120"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  -H 'sec-fetch-dest: document' \
+  -H 'sec-fetch-mode: navigate' \
+  -H 'sec-fetch-site: none' \
+  -H 'sec-fetch-user: ?1' \
+  -H 'upgrade-insecure-requests: 1' \
+  -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' \
+  --compressed \
+  | grep -o '<div class="featured button action-play primary puzzleInfo js-hub-tracker" role="button" tabindex="0" data-track-hub="The Crossword" data-track-hub-context="[0-9]*">' \
+  | sed -n 's/.*data-track-hub-context="\([0-9]*\)">/\1/p')
+
+# if no puzzle id, print error
+if [ -z "$PUZZLE_ID" ]
+then
+  echo "Error: puzzle id not found"
+  exit 1
+fi
+
+curl "https://www.nytimes.com/svc/crosswords/v2/puzzle/$PUZZLE_ID.pdf" \
   --silent \
   -o $DATE.pdf \
   -H 'authority: www.nytimes.com' \
